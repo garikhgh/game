@@ -178,6 +178,8 @@ class MaterialStorageTest {
         boolean b1 = materialStorage.addMaterial(materialEntityHost);
         assertTrue(b1);
         MaterialDto materialDto = new MaterialDto();
+        // transfer 200 possible values from one material to another. it should transfer only present materials
+        // there are only 80 points of material. this should be moved. then the host will have 170, 0 in place.
         materialDto.setMaterialValue(200);
         materialDto.setMaterialType(MaterialType.IRON);
         materialDto.setMaterialUuid(materialEntityFrom.getMaterialUuid());
@@ -185,6 +187,16 @@ class MaterialStorageTest {
 
         b1 = materialStorage.moveIfMaterialPresent(createdPlayerUuid, hostWarehouse, fromWarehouse, materialDto);
         assertTrue(b1);
+
+        Optional<MaterialEntity> m1 = materialStorage.findMaterialByWarehouseUuidAndMaterialUuid(fromWarehouse, materialEntityFrom.getMaterialUuid());
+        assertTrue(m1.isPresent());
+        MaterialEntity e1 = m1.get();
+        assertEquals(0, e1.getCurrentValue());
+
+        Optional<MaterialEntity> m2 = materialStorage.findMaterialByWarehouseUuidAndMaterialUuid(hostWarehouse, materialEntityHost.getMaterialUuid());
+        assertTrue(m2.isPresent());
+        MaterialEntity e2 = m2.get();
+        assertEquals(170, e2.getCurrentValue());
 
     }
 
