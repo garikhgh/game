@@ -39,8 +39,8 @@ public class Main {
         List<String> allWarehouses = warehouseStorage.findAllWarehouses();
         int materialCount = materialStorage.getMaterialCount();
 
-        logger.info("##### Players should be    100  Qty= {}", players.size());
-        logger.info("##### Warehouses should be 1000 Qty= {}", allWarehouses.size());
+        logger.info("##### Players should be    300  Qty= {}", players.size());
+        logger.info("##### Warehouses should be 3000 Qty= {}", allWarehouses.size());
         logger.info("##### Materials should be  9000 Qty= {}", materialCount);
 
     }
