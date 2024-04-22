@@ -10,6 +10,7 @@ import org.example.domain.MaterialType;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -77,29 +78,67 @@ public class MaterialStorage {
                 .findFirst();
     }
 
+    public synchronized List<MaterialEntity> getMaterialsOfPlayerByPlayerUuid(String playerUuid) {
+        return this.material.stream()
+                .filter(f->f.getPlayerUuid().equals(playerUuid))
+                .collect(Collectors.toList());
+    }
+    public synchronized Optional<MaterialEntity> findMaterialByWarehouseUuidAndMaterialUuid(String warehouseUuid, String materialUuid) {
+        return this.material.stream()
+                .filter(f -> f.getWarehouseUuid().equals(warehouseUuid))
+                .filter(f-> f.getMaterialUuid().equals(materialUuid))
+                .findAny();
+    }
+
     public synchronized boolean moveIfMaterialPresent(String playerUuid, String hostWarehouse, String fromWarehouse, MaterialDto transferMaterial) {
+
         Optional<MaterialEntity> hostMaterialOptional = this.material.stream()
                 .filter(f -> f.getWarehouseUuid().equals(hostWarehouse))
                 .findAny();
 
-        Optional<MaterialEntity> fromMaterialOptional = this.material.stream()
-                .filter(f -> f.getWarehouseUuid().equals(fromWarehouse))
+        if (hostMaterialOptional.isEmpty()) {
+            // add material in order to host the material;
+            MaterialEntity materialEntity = composeMaterial(transferMaterial.getMaterialType(), hostWarehouse, playerUuid);
+            this.addMaterial(materialEntity);
+        }
+        Optional<MaterialEntity> fromMaterialOptional = findMaterialByWarehouseUuidAndMaterialUuid(fromWarehouse, transferMaterial.getMaterialUuid());
+        // getting created material in order to hose the transfer material
+        hostMaterialOptional = this.material.stream()
+                .filter(f -> f.getWarehouseUuid().equals(hostWarehouse))
                 .findAny();
 
-        if (hostMaterialOptional.isPresent() && fromMaterialOptional.isPresent()) {
+
+        if (fromMaterialOptional.isPresent()) {
             MaterialEntity hostMaterial = hostMaterialOptional.get();
             MaterialEntity fromMaterial = fromMaterialOptional.get();
 
             int min = Math.min(fromMaterial.getCurrentValue(), transferMaterial.getMaterialValue());
             fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() - min);
 
-            int max = Math.max(hostMaterial.getCurrentValue() + min, hostMaterial.getMaxCapacity());
+            int max = Math.max(hostMaterial.getCurrentValue(), min);
             int valueRollBack = max - hostMaterial.getMaxCapacity() ;
-            if (valueRollBack>0){
+            if (valueRollBack > 0){
                 fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() + valueRollBack);
             }
-            hostMaterial.setCurrentValue(max);
+            hostMaterial.setCurrentValue(hostMaterial.getCurrentValue() + max);
+            return true;
         }
         return false;
+    }
+
+    // could be added a method to edit material metadata such as name, icon, description and so on
+
+    private MaterialEntity composeMaterial(MaterialType materialType, String warehouseUuid, String playerUuid) {
+        MaterialEntity material = new MaterialEntity();
+        material.setMaterialType(materialType);
+        material.setWarehouseUuid(warehouseUuid);
+        material.setMaterialUuid(UUID.randomUUID().toString());
+        material.setCurrentValue(0);
+        material.setIcon(materialType.name() + " Icon");
+        material.setName(materialType.name() +  "_Name");
+        material.setDescription(materialType.name() + " description");
+        material.setPlayerUuid(playerUuid);
+        material.setMaxCapacity(materialType.getMaxCapacity());
+        return material;
     }
 }

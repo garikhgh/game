@@ -11,5 +11,6 @@ import lombok.Setter;
 public class MaterialDto {
 
     private MaterialType materialType;
+    private String materialUuid;
     private int materialValue;
 }
