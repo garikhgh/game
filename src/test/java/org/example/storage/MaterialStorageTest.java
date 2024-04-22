@@ -131,7 +131,7 @@ class MaterialStorageTest {
         Optional<MaterialEntity> materialByMaterialUuid = materialStorage.findMaterialByMaterialUuid(materialEntity.getMaterialUuid());
         assertTrue(materialByMaterialUuid.isPresent());
         MaterialEntity materialEntity1 = materialByMaterialUuid.get();
-        assertEquals(20, materialEntity1.getCurrentValue());
+        assertEquals(30, materialEntity1.getCurrentValue());
         assertTrue(b1);
 
 
@@ -192,12 +192,13 @@ class MaterialStorageTest {
             material.setMaterialType(materialType);
             material.setWarehouseUuid(warehouseUuid);
             material.setMaterialUuid(UUID.randomUUID().toString());
+            material.setMaxCapacity(materialType.getMaxCapacity());
             material.setCurrentValue(materialCurrentValue);
             material.setIcon(materialType.name() + " Icon");
             material.setName(materialType.name() + "_Name");
             material.setDescription(materialType.name() + " description");
             material.setPlayerUuid(playerUuid);
-            material.setMaxCapacity(materialType.getMaxCapacity());
+
             return material;
         } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
             System.out.println("Material value exception, " + e.getMessage());
