@@ -69,11 +69,11 @@ class MaterialStorageTest {
                     for (int j = 0; j < 10; j++) {
                         String warehouse = warehouseStorage.addWarehouse(createdPlayerUuid);
 //                         adding 3 type of materials to each warehouse
-                        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.IRON);
+                        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.IRON, 30);
                         boolean b = materialStorage.addMaterial(materialEntity);
-                        materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.COOPER);
+                        materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.COOPER, 15);
                         b = materialStorage.addMaterial(materialEntity);
-                        materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.BOLT);
+                        materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.BOLT, 60);
                         b = materialStorage.addMaterial(materialEntity);
                     }
                 });
@@ -89,7 +89,7 @@ class MaterialStorageTest {
         String createdPlayerUuid = playerStorage.createPlayer();
         String warehouse = warehouseStorage.addWarehouse(createdPlayerUuid);
 
-        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.IRON);
+        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, warehouse, MaterialType.IRON, 20);
         boolean b = materialStorage.addMaterial(materialEntity);
 
         List<MaterialEntity> materialByPlayerUuid = materialStorage.findMaterialByPlayerUuid(createdPlayerUuid);
@@ -113,7 +113,7 @@ class MaterialStorageTest {
         assertEquals(2, playersWarehouses.size());
 
         // adding material Iron in fromWarehouse
-        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, fromWarehouse, MaterialType.IRON);
+        MaterialEntity materialEntity = mockMaterial(createdPlayerUuid, fromWarehouse, MaterialType.IRON, 50);
 
         // adding material before moving
         boolean b = materialStorage.addMaterial(materialEntity);
@@ -131,7 +131,7 @@ class MaterialStorageTest {
         assertTrue(b1);
 
 
-        // roll back
+
         materialDto = new MaterialDto();
         materialDto.setMaterialValue(100);
         materialDto.setMaterialType(MaterialType.IRON);
@@ -146,13 +146,47 @@ class MaterialStorageTest {
         assertEquals(0, materialEntity1.getCurrentValue());
         assertTrue(b1);
     }
+    @Test
+    void moveMaterialRollBack() {
 
-    public MaterialEntity mockMaterial(String playerUuid, String warehouseUuid, MaterialType materialType) {
+        PlayerStorage playerStorage = new PlayerStorage();
+        WarehouseStorage warehouseStorage = new WarehouseStorage();
+        MaterialStorage materialStorage = new MaterialStorage();
+
+        String createdPlayerUuid = playerStorage.createPlayer();
+
+        String fromWarehouse = warehouseStorage.addWarehouse(createdPlayerUuid);
+        String hostWarehouse = warehouseStorage.addWarehouse(createdPlayerUuid);
+
+        List<String> playersWarehouses = warehouseStorage.findPlayersWarehouses(createdPlayerUuid);
+        assertEquals(2, playersWarehouses.size());
+
+        // adding material Iron in fromWarehouse
+        MaterialEntity materialEntityFrom = mockMaterial(createdPlayerUuid, fromWarehouse, MaterialType.BOLT, 80);
+        MaterialEntity materialEntityHost = mockMaterial(createdPlayerUuid, hostWarehouse, MaterialType.BOLT, 90);
+
+        // adding material before moving
+        boolean b = materialStorage.addMaterial(materialEntityFrom);
+        assertTrue(b);
+        boolean b1 = materialStorage.addMaterial(materialEntityHost);
+        assertTrue(b1);
+        MaterialDto materialDto = new MaterialDto();
+        materialDto.setMaterialValue(200);
+        materialDto.setMaterialType(MaterialType.IRON);
+        materialDto.setMaterialUuid(materialEntityFrom.getMaterialUuid());
+
+
+        b1 = materialStorage.moveIfMaterialPresent(createdPlayerUuid, hostWarehouse, fromWarehouse, materialDto);
+        assertTrue(b1);
+
+    }
+
+    public MaterialEntity mockMaterial(String playerUuid, String warehouseUuid, MaterialType materialType, int materialCurrentValue) {
         MaterialEntity material = new MaterialEntity();
         material.setMaterialType(materialType);
         material.setWarehouseUuid(warehouseUuid);
         material.setMaterialUuid(UUID.randomUUID().toString());
-        material.setCurrentValue(40);
+        material.setCurrentValue(materialCurrentValue);
         material.setIcon(materialType.name() + " Icon");
         material.setName(materialType.name() +  "_Name");
         material.setDescription(materialType.name() + " description");

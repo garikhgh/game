@@ -4,11 +4,17 @@ package org.example.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.observer.NotificationSender;
+import org.example.observer.ObserverManger;
+
+import static org.example.constants.ConstantValues.*;
 
 @Setter
 @Getter
-@NoArgsConstructor
-public class MaterialEntity {
+public class MaterialEntity implements ObserverInstanceInvoker{
+
+
+    private transient ObserverManger observerManger;
 
     private String materialUuid;
     private String warehouseUuid;
@@ -22,4 +28,38 @@ public class MaterialEntity {
 
     private int maxCapacity;
     private int currentValue;
+
+
+    public void setCurrentValue(int cV) {
+        if (this.currentValue > cV) {
+            this.observerManger.notify(MATERIAL_IS_SUBTRACTED,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+        }
+        if (this.currentValue < cV) {
+            this.observerManger.notify(MATERIAL_IS_ADDED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+        }
+        if (this.currentValue  == 0) {
+            this.observerManger.notify(MATERIAL_IS_ZERO,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+        }
+        if (this.currentValue  == this.maxCapacity) {
+            this.observerManger.notify(MATERIAL_IS_FULL,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+        }
+    }
+
+    public MaterialEntity() {
+        invokeObserverInstance();
+    }
+
+
+    @Override
+    public void invokeObserverInstance() {
+        this.observerManger = new ObserverManger(MATERIAL_IS_FULL, MATERIAL_IS_ZERO, MATERIAL_IS_SUBTRACTED);
+        subscribe();
+    }
+
+    public void subscribe() {
+        observerManger.subscribe(MATERIAL_IS_FULL, new NotificationSender());
+        observerManger.subscribe(MATERIAL_IS_ZERO, new NotificationSender());
+        observerManger.subscribe(MATERIAL_IS_SUBTRACTED, new NotificationSender());
+        observerManger.subscribe(MATERIAL_IS_ADDED, new NotificationSender());
+    }
 }

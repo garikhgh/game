@@ -115,8 +115,9 @@ public class MaterialStorage {
             int min = Math.min(fromMaterial.getCurrentValue(), transferMaterial.getMaterialValue());
             fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() - min);
 
-            int max = Math.max(hostMaterial.getCurrentValue(), min);
+            int max = Math.min(hostMaterial.getMaxCapacity() - hostMaterial.getCurrentValue(), min);
             int valueRollBack = max - hostMaterial.getMaxCapacity() ;
+            // should be checked this rollback case
             if (valueRollBack > 0){
                 fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() + valueRollBack);
             }
@@ -124,6 +125,12 @@ public class MaterialStorage {
             return true;
         }
         return false;
+    }
+
+    public synchronized boolean deleteMaterialWhenPlayerIsDeleted(String playerUuid) {
+        List<MaterialEntity> collect = this.material.stream().filter(f -> f.getPlayerUuid().equals(playerUuid))
+                .toList();
+        return this.material.removeAll(collect);
     }
 
     // could be added a method to edit material metadata such as name, icon, description and so on
