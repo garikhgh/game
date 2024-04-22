@@ -6,6 +6,8 @@ import org.example.domain.MaterialType;
 import org.example.exception.MaterialMaxCapacityExceedingException;
 import org.example.exception.MaterialNegativeValueException;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MaterialStorageTest {
 
+    private final Logger logger = LoggerFactory.getLogger(MaterialStorageTest.class);
     @Test
     void addMaterialWithThreads() throws InterruptedException {
 
@@ -201,7 +204,7 @@ class MaterialStorageTest {
 
             return material;
         } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
-            System.out.println("Material value exception, " + e.getMessage());
+            logger.error("Material value exception, {}", e.getMessage());
             return material;
         }
     }

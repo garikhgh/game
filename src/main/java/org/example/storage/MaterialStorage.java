@@ -9,6 +9,9 @@ import org.example.domain.MaterialEntity;
 import org.example.domain.MaterialType;
 import org.example.exception.MaterialMaxCapacityExceedingException;
 import org.example.exception.MaterialNegativeValueException;
+import org.example.observer.NotificationSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +23,8 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor
 public class MaterialStorage {
+
+    private final Logger logger = LoggerFactory.getLogger(MaterialStorage.class);
 
     CopyOnWriteArrayList<MaterialEntity> material = new CopyOnWriteArrayList<>();
 
@@ -43,7 +48,7 @@ public class MaterialStorage {
                 return true;
             }
         } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
-            System.out.println("Material value exception, " + e.getMessage());
+            logger.error("Material value exception, {}",  e.getMessage());
             return false;
         }
 
@@ -139,7 +144,8 @@ public class MaterialStorage {
                 hostMaterial.setCurrentValue(hostMaterial.getCurrentValue() + max);
                 return true;
             } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
-                System.out.println("Material value exception, " + e.getMessage());
+
+                logger.error("Material value exception, {}",  e.getMessage());
                 return false;
             }
 
@@ -170,7 +176,7 @@ public class MaterialStorage {
             material.setMaxCapacity(materialType.getMaxCapacity());
             return material;
         } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
-            System.out.println("Material value exception, " + e.getMessage());
+            logger.error("Material value exception, {}",  e.getMessage());
             return material;
         }
     }
