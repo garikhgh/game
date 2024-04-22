@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.example.domain.MaterialDto;
 import org.example.domain.MaterialEntity;
 import org.example.domain.MaterialType;
+import org.example.exception.MaterialMaxCapacityExceedingException;
+import org.example.exception.NegativeMaterialException;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,19 +29,26 @@ public class MaterialStorage {
 
     //
     public synchronized boolean addMaterial(MaterialEntity material) {
-        Optional<MaterialEntity> any = this.material.stream()
-                .filter(f -> f.getWarehouseUuid().equals(material.getMaterialUuid()))
-                .findAny();
-        if (any.isPresent()) {
-            MaterialEntity materialEntity = any.get();
-            int i = materialEntity.getCurrentValue() + material.getCurrentValue();
-            materialEntity.setCurrentValue(Math.min(i, materialEntity.getMaxCapacity()));
-            return true;
-        } else {
-            this.material.add(material);
-            return true;
+        try {
+            Optional<MaterialEntity> any = this.material.stream()
+                    .filter(f -> f.getWarehouseUuid().equals(material.getMaterialUuid()))
+                    .findAny();
+            if (any.isPresent()) {
+                MaterialEntity materialEntity = any.get();
+                int i = materialEntity.getCurrentValue() + material.getCurrentValue();
+                materialEntity.setCurrentValue(Math.min(i, materialEntity.getMaxCapacity()));
+                return true;
+            } else {
+                this.material.add(material);
+                return true;
+            }
+        } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+            System.out.println("Material value exception, " + e.getMessage());
+            return false;
         }
+
     }
+
     public synchronized boolean isMaterialPresent(String materialUuid) {
         Optional<MaterialEntity> any = this.material.stream()
                 .filter(f -> f.getWarehouseUuid().equals(materialUuid))
@@ -48,45 +57,50 @@ public class MaterialStorage {
     }
 
     public synchronized boolean removeMaterial(MaterialEntity material) {
-        return this.material.removeIf(v->v.getMaterialUuid().equals(material.getMaterialUuid()));
+        return this.material.removeIf(v -> v.getMaterialUuid().equals(material.getMaterialUuid()));
     }
 
     public Optional<MaterialEntity> findMaterialByMaterialUuid(String materialUuid) {
         return this.material.stream()
-                .filter(f->f.getMaterialUuid().equals(materialUuid))
+                .filter(f -> f.getMaterialUuid().equals(materialUuid))
                 .findFirst();
     }
+
     public List<MaterialEntity> findMaterialEntitiesByWarehouseUuid(String warehouseUuid) {
         return this.material.stream()
-                .filter(f->f.getWarehouseUuid().equals(warehouseUuid))
+                .filter(f -> f.getWarehouseUuid().equals(warehouseUuid))
                 .collect(Collectors.toList());
     }
+
     public List<MaterialEntity> findMaterialByPlayerUuid(String playerUuid) {
         return this.material.stream()
-                .filter(f->f.getPlayerUuid().equals(playerUuid))
+                .filter(f -> f.getPlayerUuid().equals(playerUuid))
                 .collect(Collectors.toList());
     }
+
     public synchronized List<MaterialEntity> findMaterialByMaterialType(MaterialType materialType) {
         return this.material.stream()
-                .filter(f->f.getMaterialType().equals(materialType))
+                .filter(f -> f.getMaterialType().equals(materialType))
                 .collect(Collectors.toList());
     }
+
     public synchronized Optional<MaterialEntity> findMaterialByMaterialTypeAndWarehouseUuid(String warehouseUuid, MaterialType materialType) {
         return this.material.stream()
-                .filter(f->f.getMaterialType().equals(materialType))
-                .filter(f->f.getWarehouseUuid().equals(warehouseUuid))
+                .filter(f -> f.getMaterialType().equals(materialType))
+                .filter(f -> f.getWarehouseUuid().equals(warehouseUuid))
                 .findFirst();
     }
 
     public synchronized List<MaterialEntity> getMaterialsOfPlayerByPlayerUuid(String playerUuid) {
         return this.material.stream()
-                .filter(f->f.getPlayerUuid().equals(playerUuid))
+                .filter(f -> f.getPlayerUuid().equals(playerUuid))
                 .collect(Collectors.toList());
     }
+
     public synchronized Optional<MaterialEntity> findMaterialByWarehouseUuidAndMaterialUuid(String warehouseUuid, String materialUuid) {
         return this.material.stream()
                 .filter(f -> f.getWarehouseUuid().equals(warehouseUuid))
-                .filter(f-> f.getMaterialUuid().equals(materialUuid))
+                .filter(f -> f.getMaterialUuid().equals(materialUuid))
                 .findAny();
     }
 
@@ -112,17 +126,24 @@ public class MaterialStorage {
             MaterialEntity hostMaterial = hostMaterialOptional.get();
             MaterialEntity fromMaterial = fromMaterialOptional.get();
 
-            int min = Math.min(fromMaterial.getCurrentValue(), transferMaterial.getMaterialValue());
-            fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() - min);
+            try {
+                int min = Math.min(fromMaterial.getCurrentValue(), transferMaterial.getMaterialValue());
+                fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() - min);
 
-            int max = Math.min(hostMaterial.getMaxCapacity() - hostMaterial.getCurrentValue(), min);
-            int valueRollBack = max - hostMaterial.getMaxCapacity() ;
-            // should be checked this rollback case
-            if (valueRollBack > 0){
-                fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() + valueRollBack);
+                int max = Math.min(hostMaterial.getMaxCapacity() - hostMaterial.getCurrentValue(), min);
+                int valueRollBack = max - hostMaterial.getMaxCapacity();
+                // should be checked this rollback case
+                if (valueRollBack > 0) {
+                    fromMaterial.setCurrentValue(fromMaterial.getCurrentValue() + valueRollBack);
+                }
+                hostMaterial.setCurrentValue(hostMaterial.getCurrentValue() + max);
+                return true;
+            } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+                System.out.println("Material value exception, " + e.getMessage());
+                return false;
             }
-            hostMaterial.setCurrentValue(hostMaterial.getCurrentValue() + max);
-            return true;
+
+
         }
         return false;
     }
@@ -137,15 +158,20 @@ public class MaterialStorage {
 
     private MaterialEntity composeMaterial(MaterialType materialType, String warehouseUuid, String playerUuid) {
         MaterialEntity material = new MaterialEntity();
-        material.setMaterialType(materialType);
-        material.setWarehouseUuid(warehouseUuid);
-        material.setMaterialUuid(UUID.randomUUID().toString());
-        material.setCurrentValue(0);
-        material.setIcon(materialType.name() + " Icon");
-        material.setName(materialType.name() +  "_Name");
-        material.setDescription(materialType.name() + " description");
-        material.setPlayerUuid(playerUuid);
-        material.setMaxCapacity(materialType.getMaxCapacity());
-        return material;
+        try {
+            material.setMaterialType(materialType);
+            material.setWarehouseUuid(warehouseUuid);
+            material.setMaterialUuid(UUID.randomUUID().toString());
+            material.setCurrentValue(0);
+            material.setIcon(materialType.name() + " Icon");
+            material.setName(materialType.name() + "_Name");
+            material.setDescription(materialType.name() + " description");
+            material.setPlayerUuid(playerUuid);
+            material.setMaxCapacity(materialType.getMaxCapacity());
+            return material;
+        } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+            System.out.println("Material value exception, " + e.getMessage());
+            return material;
+        }
     }
 }

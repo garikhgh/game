@@ -4,6 +4,8 @@ package org.example.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.exception.MaterialMaxCapacityExceedingException;
+import org.example.exception.NegativeMaterialException;
 import org.example.observer.NotificationSender;
 import org.example.observer.ObserverManger;
 
@@ -30,7 +32,15 @@ public class MaterialEntity implements ObserverInstanceInvoker{
     private int currentValue;
 
 
-    public void setCurrentValue(int cV) {
+    public void setCurrentValue(int cV) throws NegativeMaterialException, MaterialMaxCapacityExceedingException {
+
+        if (cV < 0)  {
+            throw new NegativeMaterialException("Material value could not be negative.");
+        }
+        if (cV > this.maxCapacity) {
+            String s = String.format("Material max capacity %s could not be exceeded", this.maxCapacity);
+            throw  new MaterialMaxCapacityExceedingException(s);
+        }
         if (this.currentValue > cV) {
             this.currentValue = cV;
             this.observerManger.notify(MATERIAL_IS_SUBTRACTED,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
