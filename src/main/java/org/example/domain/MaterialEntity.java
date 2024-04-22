@@ -32,7 +32,7 @@ public class MaterialEntity implements ObserverInstanceInvoker{
 
 
     public void setCurrentValue(int cV) throws MaterialNegativeValueException, MaterialMaxCapacityExceedingException {
-
+         int v = this.currentValue;
         if (cV < 0)  {
             throw new MaterialNegativeValueException("Material value could not be negative.");
         }
@@ -42,19 +42,19 @@ public class MaterialEntity implements ObserverInstanceInvoker{
         }
         if (this.currentValue > cV) {
             this.currentValue = cV;
-            this.observerManger.notify(MATERIAL_IS_SUBTRACTED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+            this.observerManger.notify(MATERIAL_IS_SUBTRACTED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name(), v, cV);
         }
         if (this.currentValue < cV) {
             this.currentValue = cV;
-            this.observerManger.notify(MATERIAL_IS_ADDED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+            this.observerManger.notify(MATERIAL_IS_ADDED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name(), v, cV);
         }
         if (this.currentValue  == 0) {
             this.currentValue = cV;
-            this.observerManger.notify(MATERIAL_IS_ZERO,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+            this.observerManger.notify(MATERIAL_IS_ZERO,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name(), v, cV);
         }
         if (this.currentValue  == this.maxCapacity) {
             this.currentValue = cV;
-            this.observerManger.notify(MATERIAL_IS_FULL,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+            this.observerManger.notify(MATERIAL_IS_FULL,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name(), v, cV);
         }
     }
 

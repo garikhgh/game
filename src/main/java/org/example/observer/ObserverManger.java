@@ -19,10 +19,10 @@ public class ObserverManger {
         players.add(eventListener);
     }
 
-    public void notify(String eventType, String playerUuid, String warehouseUuid, String materialUuid, String materialName) {
+    public void notify(String eventType, String playerUuid, String warehouseUuid, String materialUuid, String materialName, int currentValue, int toAddValue) {
         List<MaterialObserver> player = listeners.get(eventType);
         for (MaterialObserver listener: player) {
-            listener.sendNotification(eventType, playerUuid, warehouseUuid, materialUuid, materialName);
+            listener.sendNotification(eventType, playerUuid, warehouseUuid, materialUuid, materialName, currentValue,  toAddValue);
         }
     }
 }
