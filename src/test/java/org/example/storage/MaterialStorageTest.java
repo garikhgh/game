@@ -3,6 +3,8 @@ package org.example.storage;
 import org.example.domain.MaterialDto;
 import org.example.domain.MaterialEntity;
 import org.example.domain.MaterialType;
+import org.example.exception.MaterialMaxCapacityExceedingException;
+import org.example.exception.MaterialNegativeValueException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -60,6 +62,7 @@ class MaterialStorageTest {
         List<MaterialEntity> materialsOfPlayerByPlayerUuid = materialStorage.getMaterialsOfPlayerByPlayerUuid(s);
         assertEquals(30, materialsOfPlayerByPlayerUuid.size());
     }
+
     private void testGame(PlayerStorage playerStorage, WarehouseStorage warehouseStorage, MaterialStorage materialStorage, String threadName) {
 
         IntStream.range(0, 100)
@@ -98,6 +101,7 @@ class MaterialStorageTest {
         boolean b1 = materialStorage.removeMaterial(materialEntity);
         assertTrue(b1);
     }
+
     @Test
     void moveMaterial() {
         PlayerStorage playerStorage = new PlayerStorage();
@@ -131,7 +135,6 @@ class MaterialStorageTest {
         assertTrue(b1);
 
 
-
         materialDto = new MaterialDto();
         materialDto.setMaterialValue(100);
         materialDto.setMaterialType(MaterialType.IRON);
@@ -146,6 +149,7 @@ class MaterialStorageTest {
         assertEquals(0, materialEntity1.getCurrentValue());
         assertTrue(b1);
     }
+
     @Test
     void moveMaterialRollBack() {
 
@@ -183,16 +187,22 @@ class MaterialStorageTest {
 
     public MaterialEntity mockMaterial(String playerUuid, String warehouseUuid, MaterialType materialType, int materialCurrentValue) {
         MaterialEntity material = new MaterialEntity();
-        material.setMaterialType(materialType);
-        material.setWarehouseUuid(warehouseUuid);
-        material.setMaterialUuid(UUID.randomUUID().toString());
-        material.setCurrentValue(materialCurrentValue);
-        material.setIcon(materialType.name() + " Icon");
-        material.setName(materialType.name() +  "_Name");
-        material.setDescription(materialType.name() + " description");
-        material.setPlayerUuid(playerUuid);
-        material.setMaxCapacity(materialType.getMaxCapacity());
-        return material;
+        try {
+
+            material.setMaterialType(materialType);
+            material.setWarehouseUuid(warehouseUuid);
+            material.setMaterialUuid(UUID.randomUUID().toString());
+            material.setCurrentValue(materialCurrentValue);
+            material.setIcon(materialType.name() + " Icon");
+            material.setName(materialType.name() + "_Name");
+            material.setDescription(materialType.name() + " description");
+            material.setPlayerUuid(playerUuid);
+            material.setMaxCapacity(materialType.getMaxCapacity());
+            return material;
+        } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
+            System.out.println("Material value exception, " + e.getMessage());
+            return material;
+        }
     }
 
 
