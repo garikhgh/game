@@ -32,15 +32,19 @@ public class MaterialEntity implements ObserverInstanceInvoker{
 
     public void setCurrentValue(int cV) {
         if (this.currentValue > cV) {
+            this.currentValue = cV;
             this.observerManger.notify(MATERIAL_IS_SUBTRACTED,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
         }
         if (this.currentValue < cV) {
+            this.currentValue = cV;
             this.observerManger.notify(MATERIAL_IS_ADDED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
         }
         if (this.currentValue  == 0) {
+            this.currentValue = cV;
             this.observerManger.notify(MATERIAL_IS_ZERO,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
         }
         if (this.currentValue  == this.maxCapacity) {
+            this.currentValue = cV;
             this.observerManger.notify(MATERIAL_IS_FULL,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
         }
     }
@@ -52,7 +56,7 @@ public class MaterialEntity implements ObserverInstanceInvoker{
 
     @Override
     public void invokeObserverInstance() {
-        this.observerManger = new ObserverManger(MATERIAL_IS_FULL, MATERIAL_IS_ZERO, MATERIAL_IS_SUBTRACTED);
+        this.observerManger = new ObserverManger(MATERIAL_IS_ADDED, MATERIAL_IS_FULL, MATERIAL_IS_ZERO, MATERIAL_IS_SUBTRACTED);
         subscribe();
     }
 
