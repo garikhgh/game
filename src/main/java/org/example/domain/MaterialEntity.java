@@ -69,7 +69,7 @@ public class MaterialEntity implements ObserverInstanceInvoker{
         subscribe();
     }
 
-    public void subscribe() {
+    private void subscribe() {
         observerManger.subscribe(MATERIAL_IS_FULL, new NotificationSender());
         observerManger.subscribe(MATERIAL_IS_ZERO, new NotificationSender());
         observerManger.subscribe(MATERIAL_IS_SUBTRACTED, new NotificationSender());
