@@ -42,7 +42,7 @@ public class MaterialEntity implements ObserverInstanceInvoker{
         }
         if (this.currentValue > cV) {
             this.currentValue = cV;
-            this.observerManger.notify(MATERIAL_IS_SUBTRACTED,this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
+            this.observerManger.notify(MATERIAL_IS_SUBTRACTED, this.playerUuid, this.warehouseUuid, this.materialUuid, this.materialType.name() );
         }
         if (this.currentValue < cV) {
             this.currentValue = cV;

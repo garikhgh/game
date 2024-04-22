@@ -192,6 +192,7 @@ class MaterialStorageTest {
         MaterialEntity material = new MaterialEntity();
         try {
 
+            material.setPlayerUuid(playerUuid);
             material.setMaterialType(materialType);
             material.setWarehouseUuid(warehouseUuid);
             material.setMaterialUuid(UUID.randomUUID().toString());
@@ -200,7 +201,7 @@ class MaterialStorageTest {
             material.setIcon(materialType.name() + " Icon");
             material.setName(materialType.name() + "_Name");
             material.setDescription(materialType.name() + " description");
-            material.setPlayerUuid(playerUuid);
+
 
             return material;
         } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
