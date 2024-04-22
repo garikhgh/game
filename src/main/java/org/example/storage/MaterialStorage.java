@@ -8,7 +8,7 @@ import org.example.domain.MaterialDto;
 import org.example.domain.MaterialEntity;
 import org.example.domain.MaterialType;
 import org.example.exception.MaterialMaxCapacityExceedingException;
-import org.example.exception.NegativeMaterialException;
+import org.example.exception.MaterialNegativeValueException;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +42,7 @@ public class MaterialStorage {
                 this.material.add(material);
                 return true;
             }
-        } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+        } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
             System.out.println("Material value exception, " + e.getMessage());
             return false;
         }
@@ -138,7 +138,7 @@ public class MaterialStorage {
                 }
                 hostMaterial.setCurrentValue(hostMaterial.getCurrentValue() + max);
                 return true;
-            } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+            } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
                 System.out.println("Material value exception, " + e.getMessage());
                 return false;
             }
@@ -169,7 +169,7 @@ public class MaterialStorage {
             material.setPlayerUuid(playerUuid);
             material.setMaxCapacity(materialType.getMaxCapacity());
             return material;
-        } catch (NegativeMaterialException | MaterialMaxCapacityExceedingException e) {
+        } catch (MaterialNegativeValueException | MaterialMaxCapacityExceedingException e) {
             System.out.println("Material value exception, " + e.getMessage());
             return material;
         }

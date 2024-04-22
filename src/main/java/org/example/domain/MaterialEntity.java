@@ -2,10 +2,9 @@ package org.example.domain;
 
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.exception.MaterialMaxCapacityExceedingException;
-import org.example.exception.NegativeMaterialException;
+import org.example.exception.MaterialNegativeValueException;
 import org.example.observer.NotificationSender;
 import org.example.observer.ObserverManger;
 
@@ -32,10 +31,10 @@ public class MaterialEntity implements ObserverInstanceInvoker{
     private int currentValue;
 
 
-    public void setCurrentValue(int cV) throws NegativeMaterialException, MaterialMaxCapacityExceedingException {
+    public void setCurrentValue(int cV) throws MaterialNegativeValueException, MaterialMaxCapacityExceedingException {
 
         if (cV < 0)  {
-            throw new NegativeMaterialException("Material value could not be negative.");
+            throw new MaterialNegativeValueException("Material value could not be negative.");
         }
         if (cV > this.maxCapacity) {
             String s = String.format("Material max capacity %s could not be exceeded", this.maxCapacity);
