@@ -20,7 +20,7 @@ public class WarehouseStorage {
 
     private ConcurrentMap<String, List<String>> warehouseStorage = new ConcurrentHashMap<>();
 
-    public synchronized String addWarehouse(String playerUuid) {
+    public String addWarehouse(String playerUuid) {
         String uuid = UUID.randomUUID().toString();
         if (!warehouseStorage.containsKey(playerUuid)) {
             List<String> warehouseList = warehouseStorage.get(playerUuid);
@@ -47,21 +47,21 @@ public class WarehouseStorage {
         }
     }
 
-    public synchronized boolean ifWarehousePresent(String playerUuid, String warehouseUuid) {
+    public boolean ifWarehousePresent(String playerUuid, String warehouseUuid) {
         if (warehouseStorage.containsKey(playerUuid)) {
             List<String> warehouseList = warehouseStorage.get(playerUuid);
             return warehouseList.contains(warehouseUuid);
         }
         return false;
     }
-    public synchronized List<String> findPlayersWarehouses(String playerUuid) {
+    public List<String> findPlayersWarehouses(String playerUuid) {
         if (warehouseStorage.containsKey(playerUuid)) {
             return warehouseStorage.get(playerUuid);
         }
         return Collections.emptyList();
     }
 
-    public synchronized List<String> findAllWarehouses() {
+    public List<String> findAllWarehouses() {
         return this.warehouseStorage.values().stream()
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
